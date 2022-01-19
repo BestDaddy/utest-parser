@@ -12,7 +12,7 @@ class QuestionsController extends Controller
 {
     private $image_assets = [];
 
-    private function read_doc($file)
+    private function readDoc($file)
     {
         $fileHandle = fopen($file, "r");
         $line = @fread($fileHandle, filesize($file));
@@ -28,7 +28,7 @@ class QuestionsController extends Controller
         return preg_replace("/[^a-zA-Z0-9@#\s\,\.\-\n\r\t\/\_\(\)]/", "", $outtext);
     }
 
-    private function read_docx_2($file) {
+    private function readDocx2($file) {
         $phpWord = \PhpOffice\PhpWord\IOFactory::load($file);
         $content = '';
         foreach($phpWord->getSections() as $section) {
@@ -36,13 +36,12 @@ class QuestionsController extends Controller
             foreach($section->getElements() as $element) {
                 if (method_exists($element, 'getElements')) {
                     foreach($element->getElements() as $child_element) {
-
                         if (method_exists($child_element, 'getImageStringData')) {
                             file_put_contents(
                                 storage_path('/app/public/' . $child_element->getName()),
                                 base64_decode($child_element->getImageStringData(true))
                             );
-                            $content .= "%& <img>". asset('/storage/' . $child_element->getName()) . "</img>\n";
+                            $content .= sprintf("%s%s%s\n", '<img src="', asset('/storage/' . $child_element->getName()), '"></img>');
                         }
                         elseif (method_exists($child_element, 'getText')) {
                             $content .= $child_element->getText() . "\n";
@@ -54,7 +53,7 @@ class QuestionsController extends Controller
         return $content;
     }
 
-    private function read_docx($file) {
+    private function readDocx($file) {
         $content = '';
         $zip = zip_open($file);
         $i = 0;
@@ -117,11 +116,11 @@ class QuestionsController extends Controller
         $answers[] = array(
             'content'  => trim($content, '@ #'),
             'is_right' => empty($answers),
-            'images'   => $images,
+//            'images'   => $images,
         );
     }
 
-    private function parseText($text): array
+    private function parseTextTypeSimple($text): array
     {
         $question_content = '';
         $answer_content   = '';
@@ -133,39 +132,39 @@ class QuestionsController extends Controller
             'questions' => array(),
         ];
         $answers = array();
-        $answer_images  = array();
-        $question_images  = array();
+//        $answer_images  = array();
+//        $question_images  = array();
 
         foreach(preg_split("/((\r?\n)|(\r\n?))/", $text) as $line){
-            if (($question_going || $answer_going) && str_contains($line, '%&')) {
-                if($answer_going) $answer_images[] = trim($line, '%& ');
-                elseif($question_going) $question_images[] = trim($line, '%& ');
-            }
-            elseif (str_contains($line, '#') && !empty($question_content)) {
+//            if (($question_going || $answer_going) && str_contains($line, '%&')) {
+//                if($answer_going) $answer_images[] = trim($line, '%& ');
+//                elseif($question_going) $question_images[] = trim($line, '%& ');
+//            }
+            if (str_contains($line, '#') && !empty($question_content)) {
                 if ($answer_content != '') {
-                    $this->appendAnswer($answer_content, $answers, $answer_images);
+                    $this->appendAnswer($answer_content, $answers);
                 }
 
                 $answer_content     = $line;
                 $question_going     = false;
                 $answer_going       = true;
-                $answer_images      = array();
+//                $answer_images      = array();
                 continue;
             }
             elseif (str_contains($line, '@')) {
                 if ($question_content != '' && !empty($answers)) {
                     if ($answer_content != '') {
-                        $this->appendAnswer($answer_content, $answers, $answer_images);
+                        $this->appendAnswer($answer_content, $answers);
                     }
                     $question = [
                         'content' => trim($question_content, '@ #'),
                         'answers' => $answers,
-                        'images'  => $question_images,
+//                        'images'  => $question_images,
                     ];
                     $result['questions'][] = $question;
                     $answer_content = '';
                     $answers = array();
-                    $question_images  = array();
+//                    $question_images  = array();
                 }
 
                 $question_content   = $line;
@@ -175,10 +174,10 @@ class QuestionsController extends Controller
             }
 
             if ($question_going) {
-                $question_content = $question_content . ' ' .  $line;
+                $question_content = $question_content . $line;
             }
             elseif ($answer_going) {
-                $answer_content   = $answer_content . ' ' .  $line;
+                $answer_content   = $answer_content .  $line;
             }
         }
 
@@ -199,101 +198,18 @@ class QuestionsController extends Controller
 
         switch ($ext  = $request->file('file')->extension()) {
             case ($ext == 'doc') :
-                $text = $this->read_doc($request->file('file'));
+                $text = $this->readDoc($request->file('file'));
                 break;
             case ($ext == 'docx') :
-                $text = $this->read_docx_2($request->file('file'));
-//                return  $text;
+                $text = $this->readDocx2($request->file('file'));
                 break;
             default :
-                return [
+                return  response()->json([
                     'error' => 'Could not parse a file'
-                ];
+                ]);
 
         }
 
-        return $this->parseText($text);
+        return $this->parseTextTypeSimple($text);
     }
-
-//    public function parse(Request $request) {
-//        $error = Validator::make($request->all(), array(
-//            'question_type' => ['required'],
-//            'file' => ['required', 'file']
-//        ));
-//
-//        if($error->fails()) {
-//            return response()->json(['errors' => $error->errors()->all()]);
-//        }
-//        $result = [
-//            'questions' => array(),
-//        ];
-//
-//        $answers = array();
-//
-//        $content = "";
-//        $test = $this->read_docx($request->file('file'));
-//        $i =0;
-//
-//        $question_content = '';
-//        $answer_content   = '';
-//
-//        $question_going = false;
-//        $answer_going   = false;
-//
-//
-//        foreach(preg_split("/((\r?\n)|(\r\n?))/", $test) as $line){
-//
-//            if (str_contains($line, '#')) {
-//
-//                if($answer_content != '') {
-//                    $answers[] = array(
-//                        'content' => $answer_content,
-//                    );
-//                }
-//
-//                $answer_content     = $line;
-//                $question_going     = false;
-//                $answer_going       = true;
-//                continue;
-//            }
-//            elseif(str_contains($line, '@')) {
-//
-//                if($question_content != '' && !empty($answers)) {
-//                    if($answer_content != '') {
-//                        $answers[] = array(
-//                            'content' => $answer_content,
-//                        );
-//                    }
-//                    $question = [
-//                        'content' => $question_content,
-//                        'answers' => $answers
-//                    ];
-//                    $result['questions'][] = $question;
-//                    $answer_content = '';
-//                    $answers = array();
-//                }
-//
-//                $question_content   = $line;
-//                $question_going     = true;
-//                $answer_going       = false;
-//                continue;
-//            }
-//
-//            if($question_going) {
-//                $question_content = $question_content . ' ' . $line;
-//            }
-//            elseif($answer_going) {
-//                $answer_content   = $answer_content . ' ' . $line;
-//            }
-//
-//
-//
-//
-//            $content = $content . ' ' . $line;
-//            if($i >8) break;
-//            $i++;
-//        }
-//
-//        return $result;
-//    }
 }
