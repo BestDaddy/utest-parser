@@ -188,7 +188,7 @@ class QuestionsController extends Controller
 
     public function parse(Request $request) {
         $error = Validator::make($request->all(), array(
-            'question_type' => ['required'],
+//            'question_type' => ['required'],
             'file' => ['required', 'file']
         ));
 
