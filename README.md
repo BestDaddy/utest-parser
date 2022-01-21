@@ -1,13 +1,27 @@
-https://hub.docker.com/r/23806/docker-utest-parser
+git clone {URL REPO}
 
-вот докер, порт локал:8088
+После нужно ввести следующие команды
 
-по базе данных ничего не нужно пока
+composer install
 
-после запуска контейнера
+copy .env.example .env
 
-http://127.0.0.1:8088/api/parse вот эта апишка
+php artisan key:generate
 
-маска POST
+php artisan storage:link // для картинок
+    
 
-в бадик закинуть file нужный файл
+После запускаем докер
+
+docker-compose up -d
+
+
+Парсер для простого формата где есть @ - вопрос # - ответы
+
+API:
+
+    POST: http://localhost/api/parse
+        BODY: file -> file
+
+если есть картинки, они будут в контенте виде ссылки 
+![img.png](img.png)
