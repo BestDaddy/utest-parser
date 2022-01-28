@@ -19,4 +19,6 @@ use Illuminate\Support\Facades\Route;
 //    return $request->user();
 //});
 
+Route::get('/types', [QuestionsController::class, 'parseTypes']);
+
 Route::post('/parse', [QuestionsController::class, 'parse']);
