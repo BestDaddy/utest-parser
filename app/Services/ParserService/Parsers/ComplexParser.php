@@ -5,8 +5,14 @@ namespace App\Services\ParserService\Parsers;
 use App\Services\ParserService\ProcessParser;
 use App\Services\ParserService\WordFileReader;
 
-class ComplexParser extends WordFileReader implements ProcessParser
+class ComplexParser extends BaseTextParser implements ProcessParser
 {
+    private $wordReader;
+
+    public function __construct() {
+        $this->wordReader = new WordFileReader();
+    }
+
     protected function appendAnswer(string $content, &$answers) {
         $filter = array("[right]", "A)", "B)", "C)", "D)", "A.", "B.", "C.", "D.", "А.", "В.", "С.", "Д.", "А)", "В)", "С)", "Д)");
         $answers[] = array(
@@ -71,8 +77,8 @@ class ComplexParser extends WordFileReader implements ProcessParser
 
     public function process($file): array
     {
-        $text = $this->readDocxPhpWord($file);
-        $text .= "\n999."; // КОСТЫЫЫЫЫЛЬ
+        $text = $this->wordReader->readDocxPhpWord($file);
+        $text .= "\n999."; // todo fix
         return $this->parseText($text, '/^[0-9]+[.]|^[0-9]+[)]/', '/[A-DА-Д][.]|[A-DА-Д][)]/');
     }
 }

@@ -8,11 +8,15 @@ class DarkanDalaParser implements ProcessParser
 {
     private function parseGround($file) {
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+        $highest = $spreadsheet->getActiveSheet()->getHighestRow('A');
         $result = array(
             'name' => $spreadsheet->getActiveSheet()->getCell('G11')->getValue(),
             'selection_date' => $spreadsheet->getActiveSheet()->getCell('F18')->getValue(),
             'indicators' => array(),
         );
+
+        if($spreadsheet->getActiveSheet()->getCell('A' . ($highest - 16))->getValue())
+
         foreach (range('F', 'K') as $column) {
             $indicator = [
                 'name' => $spreadsheet->getActiveSheet()->getCell($column . 27)->getValue(),

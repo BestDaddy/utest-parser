@@ -5,8 +5,14 @@ namespace App\Services\ParserService\Parsers;
 use App\Services\ParserService\ProcessParser;
 use App\Services\ParserService\WordFileReader;
 
-class UtestSimpleParser extends WordFileReader implements ProcessParser
+class UtestSimpleParser extends BaseTextParser implements ProcessParser
 {
+    private $wordReader;
+
+    public function __construct() {
+        $this->wordReader = new WordFileReader();
+    }
+
     protected function appendAnswer(string $content, &$answers) {
         $answers[] = array(
             'content'  => trim($content, '@ #'),
@@ -17,17 +23,17 @@ class UtestSimpleParser extends WordFileReader implements ProcessParser
     public function process($file, $ext = 'docx') {
         switch ($ext) {
             case ($ext == 'doc') :
-                $text = $this->readDoc($file);
+                $text = $this->wordReader->readDoc($file);
                 break;
             case ($ext == 'docx') :
-                $text = $this->readDocxPhpWord($file);
+                $text = $this->wordReader->readDocxPhpWord($file);
                 break;
             default :
                 return  response()->json([
                     'error' => 'Could not parse a file'
                 ]);
         }
-        $text .= "\n@ asdf";
+        $text .= "\n@ asdf";  // todo fix
         return $this->parseText($text, '/^[@]/', '/[#]/');
     }
 }

@@ -52,7 +52,7 @@ class QuestionsController extends Controller
         }
         else {
             return  response()->json([
-                'error' => 'Could not parse a file'
+                'error' => 'Unknown parser type'
             ]);
         }
         $result =  $parser->process($request->file('file'), $request->file('file')->extension());
