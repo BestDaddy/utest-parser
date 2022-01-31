@@ -9,12 +9,6 @@ use App\Services\ParserService\Parsers\DarkanDalaParser;
 use App\Services\ParserService\Parsers\UtestSimpleParser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use PhpOffice\PhpWord\Element\Image;
-use PhpOffice\PhpWord\Element\Table;
-use PhpOffice\PhpWord\Element\Text;
-use PhpOffice\PhpWord\Element\TextBreak;
-use PhpOffice\PhpWord\IOFactory;
-use ZipArchive;
 
 class QuestionsController extends Controller
 {
@@ -44,6 +38,7 @@ class QuestionsController extends Controller
         if($error->fails()) {
             return response()->json(['errors' => $error->errors()->all()]);
         }
+
         $type = $request->input('parser_type_id');
 
         if($type == ParserTypeContract::UTEST_PARSER_ID) {
@@ -60,7 +55,7 @@ class QuestionsController extends Controller
                 'error' => 'Could not parse a file'
             ]);
         }
-        $result =  $parser->process($request->file('file'));
+        $result =  $parser->process($request->file('file'), $request->file('file')->extension());
         return response()->json($result);
     }
 }
