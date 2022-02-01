@@ -15,8 +15,6 @@ class DarkanDalaParser implements ProcessParser
             'indicators' => array(),
         );
 
-        if($spreadsheet->getActiveSheet()->getCell('A' . ($highest - 16))->getValue())
-
         foreach (range('F', 'K') as $column) {
             $indicator = [
                 'name' => $spreadsheet->getActiveSheet()->getCell($column . 27)->getValue(),

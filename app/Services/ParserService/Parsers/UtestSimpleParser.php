@@ -30,7 +30,7 @@ class UtestSimpleParser extends BaseTextParser implements ProcessParser
                 break;
             default :
                 return  response()->json([
-                    'error' => 'Could not parse a file'
+                    'error' => 'Could not parse a file: ' . $ext
                 ]);
         }
         $text .= "\n@ asdf";  // todo fix
